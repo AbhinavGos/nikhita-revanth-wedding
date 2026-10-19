@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0c0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>The Wedding Post · Nikhita &amp; Revanth · Living Newspaper AR Experience</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+  }
+}
+</script>
+
+<style>
+  :root {
+    --gold: #e5c158;
+    --gold-bright: #ffe699;
+    --gold-glow: rgba(229, 193, 88, 0.45);
+    --gold-border: rgba(229, 193, 88, 0.55);
+    --dark: #0e0c0a;
+    --card-ratio: 1.7777778; /* 1280 / 720 (9:16 portrait) */
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; background: var(--dark); color: #fff;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  /* Fullscreen MindAR Camera Viewport */
+  #ar-container {
+    position: fixed; inset: 0; width: 100vw; height: 100vh;
+    overflow: hidden; z-index: 0; display: block;
+  }
+
+  /* Hidden Native Video Element for GPU Texture Streaming */
+  #arVideo {
+    position: fixed;
+    top: 0; left: 0;
+    width: 1px; height: 1px;
+    opacity: 0.01;
+    pointer-events: none;
+    z-index: -100;
+  }
+
+  /* 1-Tap Frictionless Entry Gate (Mobile Audio & Camera Permission) */
+  #start-prompt {
+    position: fixed; inset: 0; z-index: 35;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 50%, rgba(18, 14, 11, 0.88), rgba(8, 6, 5, 0.98));
+    backdrop-filter: blur(14px);
+    cursor: pointer; text-align: center; padding: 24px;
+    transition: opacity 0.3s ease, visibility 0.3s;
+  }
+
+  .start-card {
+    max-width: 350px; width: 100%;
+    background: rgba(22, 17, 13, 0.95);
+    border: 1.5px solid var(--gold-border);
+    border-radius: 28px; padding: 36px 24px 28px;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.9), 0 0 35px var(--gold-glow);
+    display: flex; flex-direction: column; align-items: center;
+    animation: gentlePulse 2.8s infinite ease-in-out;
+  }
+
+  @keyframes gentlePulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 16px 50px rgba(0,0,0,0.9), 0 0 25px var(--gold-glow); }
+    50% { transform: scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.98), 0 0 42px var(--gold-glow); }
+  }
+
+  .monogram-ring {
+    width: 78px; height: 78px; border-radius: 50%;
+    background: linear-gradient(135deg, #fae29c, #d4a742);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-size: 24px; font-weight: 800; color: #1a1208;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 28px rgba(212, 167, 66, 0.55);
+    border: 2px solid #fff3cf;
+  }
+
+  .start-tagline {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+  }
+
+  .start-card h2 {
+    font-family: 'Cinzel', serif; font-size: 24px; font-weight: 800;
+    letter-spacing: 0.04em; margin: 0 0 6px; color: #fff;
+  }
+
+  .start-date {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 14.5px; color: #f8e5b9; margin-bottom: 12px;
+  }
+
+  .start-card p {
+    font-size: 12.5px; color: #d6cbbf; line-height: 1.55; margin: 0 0 24px;
+  }
+
+  .btn-tap-start {
+    background: linear-gradient(135deg, #fae29c, #d4a742);
+    color: #1a1208; font-weight: 800; font-size: 13.5px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 14px 32px; border-radius: 999px;
+    border: none; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(212, 167, 66, 0.5);
+    display: flex; align-items: center; gap: 8px;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-tap-start:active { transform: scale(0.96); }
+
+  /* Loading State */
+  #loading-view {
+    position: fixed; inset: 0; z-index: 25;
+    background: rgba(12, 9, 7, 0.96);
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 20px;
+  }
+  .spinner {
+    width: 52px; height: 52px;
+    border: 3.5px solid rgba(229, 193, 88, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .load-text { font-size: 14px; font-weight: 600; color: #fae29c; letter-spacing: 0.04em; }
+
+  /* Portrait Scanning Viewfinder (Matches 720x1280 Target Aspect Ratio) */
+  #scanner-overlay {
+    position: fixed; inset: 0; z-index: 10; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #scanner-overlay.locked-mode {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+
+  .scanner-box {
+    width: min(72vw, 290px);
+    height: calc(min(72vw, 290px) * var(--card-ratio));
+    border: 2px dashed rgba(229, 193, 88, 0.7);
+    border-radius: 18px;
+    position: relative;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.58);
+    animation: pulseBorder 2.4s infinite ease-in-out;
+  }
+
+  .scanner-box::before, .scanner-box::after {
+    content: ""; position: absolute; width: 24px; height: 24px;
+    border-color: #ffd782; border-style: solid; pointer-events: none;
+  }
+  .scanner-box::before {
+    top: -2px; left: -2px; border-width: 3.5px 0 0 3.5px; border-top-left-radius: 18px;
+  }
+  .scanner-box::after {
+    bottom: -2px; right: -2px; border-width: 0 3.5px 3.5px 0; border-bottom-right-radius: 18px;
+  }
+
+  .scanner-corners-alt {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .scanner-corners-alt::before {
+    content: ""; position: absolute; width: 24px; height: 24px;
+    top: -2px; right: -2px; border-color: #ffd782; border-style: solid;
+    border-width: 3.5px 3.5px 0 0; border-top-right-radius: 18px;
+  }
+  .scanner-corners-alt::after {
+    content: ""; position: absolute; width: 24px; height: 24px;
+    bottom: -2px; left: -2px; border-color: #ffd782; border-style: solid;
+    border-width: 0 0 3.5px 3.5px; border-bottom-left-radius: 18px;
+  }
+
+  .scanner-line {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #ffe29e, #dfa248, transparent);
+    box-shadow: 0 0 16px #e5c158;
+    animation: scanSweep 2.4s infinite ease-in-out;
+  }
+
+  @keyframes scanSweep {
+    0% { top: 2%; opacity: 0.3; }
+    50% { top: 96%; opacity: 1; }
+    100% { top: 2%; opacity: 0.3; }
+  }
+  @keyframes pulseBorder {
+    0%, 100% { border-color: rgba(229, 193, 88, 0.45); }
+    50% { border-color: rgba(255, 230, 160, 0.95); }
+  }
+
+  .scanner-hint {
+    margin-top: 18px;
+    background: rgba(22, 17, 13, 0.92);
+    border: 1px solid var(--gold-border);
+    padding: 10px 22px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 700; color: var(--gold);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  }
+
+  /* HUD Active Overlay */
+  #hud {
+    position: fixed; inset: 0; z-index: 15;
+    display: none; pointer-events: none;
+  }
+
+  .hud-topbar {
+    position: absolute; top: env(safe-area-inset-top, 16px);
+    left: 14px; right: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .hud-badge {
+    background: rgba(22, 17, 13, 0.92);
+    border: 1px solid var(--gold-border);
+    padding: 7px 14px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; color: #fff;
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; gap: 7px;
+  }
+
+  .badge-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #00ff88; box-shadow: 0 0 10px #00ff88;
+  }
+  .badge-dot.lost {
+    background: #ffb700; box-shadow: 0 0 10px #ffb700;
+  }
+
+  .hud-actions { display: flex; gap: 8px; pointer-events: auto; }
+  .icon-btn {
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid var(--gold-border);
+    background: rgba(22, 17, 13, 0.88); color: var(--gold);
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    transition: transform 0.15s, background 0.2s;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+
+  /* Bottom Controls Dock */
+  .hud-bottom {
+    position: absolute; bottom: env(safe-area-inset-bottom, 18px);
+    left: 14px; right: 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    pointer-events: auto;
+  }
+
+  /* Angle Switcher Modes */
+  .angle-mode-bar {
+    display: flex; gap: 6px;
+    background: rgba(22, 17, 13, 0.94);
+    border: 1px solid var(--gold-border);
+    border-radius: 999px; padding: 4px 6px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.75);
+    max-width: 95vw; overflow-x: auto;
+  }
+
+  .angle-btn {
+    background: transparent; border: none;
+    color: #cbd5e1; font-size: 11px; font-weight: 600;
+    padding: 6px 13px; border-radius: 999px;
+    cursor: pointer; transition: all 0.2s ease;
+    white-space: nowrap; display: flex; align-items: center; gap: 5px;
+  }
+  .angle-btn.active {
+    background: linear-gradient(135deg, #fae29c, #d4a742);
+    color: #1a1208; font-weight: 800;
+    box-shadow: 0 2px 10px rgba(212, 167, 66, 0.45);
+  }
+
+  /* Playback & Progress Bar Dock */
+  .playback-bar {
+    background: rgba(22, 17, 13, 0.94);
+    border: 1px solid var(--gold-border);
+    border-radius: 20px; padding: 9px 16px;
+    max-width: 440px; width: 100%;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.75);
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .play-pause-btn {
+    background: rgba(229, 193, 88, 0.15);
+    border: 1px solid var(--gold-border);
+    border-radius: 50%; width: 38px; height: 38px;
+    color: var(--gold); font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .play-pause-btn:active { transform: scale(0.92); }
+
+  .progress-wrap {
+    flex: 1; display: flex; flex-direction: column; gap: 5px;
+  }
+
+  .caption-info {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; font-weight: 600; color: #fae29c;
+  }
+  .time-stamp {
+    font-size: 10.5px; color: #a89f91; font-variant-numeric: tabular-nums;
+  }
+
+  .video-progress-track {
+    width: 100%; height: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px; overflow: hidden;
+    cursor: pointer;
+  }
+  .video-progress-fill {
+    width: 0%; height: 100%;
+    background: linear-gradient(90deg, #fae29c, #d4a742);
+    border-radius: 999px;
+    transition: width 0.1s linear;
+  }
+
+  /* Modal for Target Image Reference */
+  #target-modal {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(8, 6, 5, 0.92);
+    backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-content {
+    background: rgba(22, 17, 13, 0.96);
+    border: 1.5px solid var(--gold-border);
+    border-radius: 24px; padding: 22px; max-width: 440px; width: 100%;
+    box-shadow: 0 16px 45px rgba(0,0,0,0.9);
+    text-align: center; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-content h3 {
+    font-family: 'Cinzel', serif; font-size: 18px; margin: 0 0 6px; color: var(--gold);
+  }
+  .modal-content p {
+    font-size: 12px; color: #d6cbbf; margin: 0 0 14px; line-height: 1.45;
+  }
+  .modal-content img {
+    width: 100%; height: auto; max-height: 55vh; object-fit: contain;
+    border-radius: 12px; border: 1px solid var(--gold-border);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  }
+  .modal-close-btn {
+    margin-top: 16px; background: rgba(229, 193, 88, 0.18);
+    border: 1px solid var(--gold-border); color: var(--gold);
+    font-weight: 700; font-size: 12px; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 11px 26px; border-radius: 999px;
+    cursor: pointer;
+  }
+
+  /* Error Box */
+  #error-box {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(14, 11, 9, 0.96);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  .error-card {
+    background: #1c0e0e; border: 1.5px solid #ef4444;
+    border-radius: 20px; padding: 24px; max-width: 320px;
+  }
+  .error-card h3 { color: #f87171; margin: 0 0 8px; font-size: 16px; }
+  .error-card p { font-size: 12.5px; color: #fca5a5; line-height: 1.5; margin: 0 0 18px; }
+  .btn-retry {
+    background: #ef4444; color: #fff; border: none;
+    padding: 10px 22px; border-radius: 999px; font-weight: 700; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hidden Native Video Primed for 3D VideoTexture -->
+<video id="arVideo" src="./video.mp4" playsinline webkit-playsinline preload="auto" loop crossorigin="anonymous"></video>
+
+<!-- 1-Tap Entry Screen -->
+<div id="start-prompt">
+  <div class="start-card">
+    <div class="monogram-ring">N &amp; R</div>
+    <div class="start-tagline">Save The Date · The Wedding Post</div>
+    <h2>Nikhita &amp; Revanth</h2>
+    <div class="start-date">December 15th · MRC Convention</div>
+    <p>Two souls, one heart. Point your camera at the newspaper card to watch our story come alive in augmented reality.</p>
+    <button class="btn-tap-start" id="startBtn">
+      <span>📰</span>
+      <span>Open AR Camera</span>
+    </button>
+  </div>
+</div>
+
+<!-- MindAR Fullscreen Camera Viewport -->
+<div id="ar-container"></div>
+
+<!-- Loading Spinner Screen -->
+<div id="loading-view">
+  <div class="spinner"></div>
+  <div class="load-text" id="loadStatus">Starting Camera &amp; Card Tracker...</div>
+</div>
+
+<!-- Portrait Newspaper Scanner Overlay -->
+<div id="scanner-overlay">
+  <div class="scanner-box">
+    <div class="scanner-corners-alt"></div>
+    <div class="scanner-line"></div>
+  </div>
+  <div class="scanner-hint">✨ Point Camera At The Newspaper Card</div>
+</div>
+
+<!-- Interactive Active HUD Overlay -->
+<div id="hud">
+  <div class="hud-topbar">
+    <div class="hud-badge">
+      <span class="badge-dot" id="hudDot"></span>
+      <span id="hudStatusText">Searching for Newspaper...</span>
+    </div>
+    <div class="hud-actions">
+      <button class="icon-btn" id="viewTargetBtn" title="View Target Newspaper">🎴</button>
+      <button class="icon-btn" id="muteBtn" title="Audio Toggle">🔊</button>
+      <button class="icon-btn" id="replayBtn" title="Replay Video">🔄</button>
+      <button class="icon-btn" id="closeBtn" title="Exit AR">✕</button>
+    </div>
+  </div>
+
+  <div class="hud-bottom">
+    <!-- Viewing Angle Switcher -->
+    <div class="angle-mode-bar">
+      <button class="angle-btn active" id="modeFlushBtn">📰 Live Photo</button>
+      <button class="angle-btn" id="modeEaselBtn">📐 3D Pop-Up</button>
+      <button class="angle-btn" id="modeStandBtn">🏛️ 90° Stand</button>
+      <button class="angle-btn" id="modeAutoBtn">🧭 Auto-Face</button>
+    </div>
+
+    <!-- Video Playback & Time Dock -->
+    <div class="playback-bar">
+      <button class="play-pause-btn" id="playPauseBtn">⏸️</button>
+      <div class="progress-wrap">
+        <div class="caption-info">
+          <span>The Wedding Post · Nikhita &amp; Revanth</span>
+          <span class="time-stamp" id="timeDisplay">00:00 / 00:32</span>
+        </div>
+        <div class="video-progress-track">
+          <div class="video-progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Target Photo Reference Modal -->
+<div id="target-modal">
+  <div class="modal-content">
+    <h3>Visual Trigger Card</h3>
+    <p>Point your mobile camera at this image (or physical printed newspaper card) to trigger the AR video.</p>
+    <img src="./target_card.png" alt="Target Card">
+    <button class="modal-close-btn" id="closeTargetModalBtn">Done / Resume Camera</button>
+  </div>
+</div>
+
+<!-- Error Box -->
+<div id="error-box">
+  <div class="error-card">
+    <h3>Camera Access Required</h3>
+    <p id="errorDesc">Please enable camera permissions in your mobile browser to scan the newspaper card.</p>
+    <button class="btn-retry" id="retryBtn">Try Again</button>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { MindARThree } from 'mindar-image-three';
+
+// DOM Elements
+const startPrompt = document.getElementById('start-prompt');
+const startBtn = document.getElementById('startBtn');
+const loadingView = document.getElementById('loading-view');
+const loadStatus = document.getElementById('loadStatus');
+const scannerOverlay = document.getElementById('scanner-overlay');
+const hud = document.getElementById('hud');
+const hudDot = document.getElementById('hudDot');
+const hudStatusText = document.getElementById('hudStatusText');
+const arContainer = document.getElementById('ar-container');
+const arVideo = document.getElementById('arVideo');
+const muteBtn = document.getElementById('muteBtn');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const replayBtn = document.getElementById('replayBtn');
+const closeBtn = document.getElementById('closeBtn');
+const viewTargetBtn = document.getElementById('viewTargetBtn');
+const targetModal = document.getElementById('target-modal');
+const closeTargetModalBtn = document.getElementById('closeTargetModalBtn');
+const timeDisplay = document.getElementById('timeDisplay');
+const progressFill = document.getElementById('progressFill');
+const progressTrack = document.querySelector('.video-progress-track');
+const errorBox = document.getElementById('error-box');
+const errorDesc = document.getElementById('errorDesc');
+const retryBtn = document.getElementById('retryBtn');
+
+const modeFlushBtn = document.getElementById('modeFlushBtn');
+const modeEaselBtn = document.getElementById('modeEaselBtn');
+const modeStandBtn = document.getElementById('modeStandBtn');
+const modeAutoBtn = document.getElementById('modeAutoBtn');
+
+// 3D Scene Architecture
+let mindarThree = null;
+let anchor = null;
+let arStage = null;
+let cardPivotGroup = null;
+let videoMesh = null;
+let backMesh = null;
+let standPedestal = null;
+let shadowMesh = null;
+let particlesGroup = null;
+
+let isTargetFound = false;
+let hasEverLocked = false;
+let userManuallyPaused = false;
+let currentAngleMode = 'flush'; // 'flush' | 'easel' | 'stand' | 'auto'
+
+// Filtering & Smooth Tracking Matrices
+const currentPos = new THREE.Vector3();
+const currentQuat = new THREE.Quaternion();
+const currentScale = new THREE.Vector3(1, 1, 1);
+const targetPos = new THREE.Vector3();
+const targetQuat = new THREE.Quaternion();
+const targetScale = new THREE.Vector3(1, 1, 1);
+const lastValidMatrix = new THREE.Matrix4();
+let isPoseInitialized = false;
+
+// Card Geometry: 720 x 1280 (H/W ratio = 1280 / 720 = 1.7777778)
+const CARD_WIDTH = 1.0;
+const CARD_HEIGHT = 1.7777778;
+const HALF_HEIGHT = CARD_HEIGHT / 2; // 0.8888889
+
+const parentQuat = new THREE.Quaternion();
+const targetLocalQuat = new THREE.Quaternion();
+
+// Contact Shadow Texture
+function createContactShadowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(128, 64, 10, 128, 64, 110);
+  gradient.addColorStop(0, 'rgba(0,0,0,0.72)');
+  gradient.addColorStop(0.4, 'rgba(0,0,0,0.30)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 128);
+  return new THREE.CanvasTexture(canvas);
+}
+
+// Vintage Golden Sparkles & Floating Paper Dust Motes
+function createAtmosphericParticles() {
+  const group = new THREE.Group();
+  const count = 35;
+  const geo = new THREE.PlaneGeometry(0.03, 0.03);
+  const mat1 = new THREE.MeshBasicMaterial({ color: 0xfae29c, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+  const mat2 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+
+  for (let i = 0; i < count; i++) {
+    const p = new THREE.Mesh(geo, (Math.random() > 0.4) ? mat1 : mat2);
+    p.position.set(
+      (Math.random() - 0.5) * 1.6,
+      (Math.random() - 0.5) * 2.2,
+      (Math.random() - 0.5) * 0.5 + 0.1
+    );
+    p.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+    p.userData = {
+      speedY: 0.0015 + Math.random() * 0.003,
+      driftX: (Math.random() - 0.5) * 0.0015,
+      rotX: 0.015 + Math.random() * 0.02,
+      rotY: 0.015 + Math.random() * 0.02
+    };
+    group.add(p);
+  }
+  return group;
+}
+
+// ── Main Start AR Workflow ──────────────────────────────────────────────────
+async function startAR() {
+  startPrompt.style.opacity = '0';
+  setTimeout(() => { startPrompt.style.display = 'none'; }, 300);
+  loadingView.style.display = 'flex';
+  loadStatus.textContent = 'Requesting camera access...';
+
+  // 1-Tap Autoplay & Audio Priming
+  try {
+    arVideo.muted = false;
+    const playPromise = arVideo.play();
+    if (playPromise !== undefined) {
+      await playPromise;
+      arVideo.pause();
+      arVideo.currentTime = 0;
+    }
+  } catch (err) {
+    console.warn('Audio prime notice:', err);
+    arVideo.muted = true;
+    try {
+      await arVideo.play();
+      arVideo.pause();
+      arVideo.currentTime = 0;
+      arVideo.muted = false;
+    } catch (e2) {}
+  }
+
+  arContainer.style.display = 'block';
+
+  try {
+    mindarThree = new MindARThree({
+      container: arContainer,
+      imageTargetSrc: './targets.mind',
+      filterMinCF: 0.0005,
+      filterBeta: 0.05,
+      warmupTolerance: 2,
+      missTolerance: 45,
+      uiLoading: "no",
+      uiScanning: "no"
+    });
+
+    const { renderer, scene, camera } = mindarThree;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+
+    // Ambient Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambientLight);
+
+    // Anchor on Newspaper Image Target (Index 0)
+    anchor = mindarThree.addAnchor(0);
+
+    // Persistent AR Stage Attached to Scene for Smooth Tracking & Hold
+    arStage = new THREE.Group();
+    arStage.matrixAutoUpdate = false;
+    arStage.visible = false;
+    scene.add(arStage);
+
+    // 1. Contact Ground Shadow on Card Hinge
+    const shadowGeo = new THREE.PlaneGeometry(CARD_WIDTH * 1.3, 0.4);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: createContactShadowTexture(),
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false
+    });
+    shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+    shadowMesh.position.set(0, -HALF_HEIGHT, 0.002);
+    shadowMesh.visible = false;
+    arStage.add(shadowMesh);
+
+    // 2. 3D Golden Pedestal Bar along Bottom Hinge
+    const standGeo = new THREE.BoxGeometry(CARD_WIDTH + 0.04, 0.025, 0.02);
+    const standMat = new THREE.MeshStandardMaterial({
+      color: 0xd4a742,
+      metalness: 0.88,
+      roughness: 0.22
+    });
+    standPedestal = new THREE.Mesh(standGeo, standMat);
+    standPedestal.position.set(0, -HALF_HEIGHT, 0.01);
+    standPedestal.visible = false;
+    arStage.add(standPedestal);
+
+    // 3. Pivot Transform Group
+    cardPivotGroup = new THREE.Group();
+    cardPivotGroup.position.set(0, 0, 0.002);
+    arStage.add(cardPivotGroup);
+
+    // 4. High-Definition Unlit Video Texture
+    const videoTexture = new THREE.VideoTexture(arVideo);
+    videoTexture.colorSpace = THREE.SRGBColorSpace;
+    videoTexture.minFilter = THREE.LinearFilter;
+    videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.generateMipmaps = false;
+
+    // Centered geometry for flush card overlay
+    const videoGeo = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT);
+    const videoMat = new THREE.MeshBasicMaterial({
+      map: videoTexture,
+      side: THREE.DoubleSide
+    });
+    videoMesh = new THREE.Mesh(videoGeo, videoMat);
+    videoMesh.position.set(0, 0, 0);
+    cardPivotGroup.add(videoMesh);
+
+    // Recessed Gilded Backing Plane (z = -0.003) to prevent Z-fighting
+    const backGeo = new THREE.PlaneGeometry(CARD_WIDTH + 0.02, CARD_HEIGHT + 0.02);
+    const backMat = new THREE.MeshBasicMaterial({
+      color: 0xc89b38,
+      side: THREE.DoubleSide
+    });
+    backMesh = new THREE.Mesh(backGeo, backMat);
+    backMesh.position.set(0, 0, -0.003);
+    cardPivotGroup.add(backMesh);
+
+    // 5. Atmospheric Floating Sparkles
+    particlesGroup = createAtmosphericParticles();
+    arStage.add(particlesGroup);
+
+    // Apply Default Mode: 'flush' (Live Photo)
+    applyAngleMode('flush');
+
+    // 6. Target Found & Lost Callbacks
+    anchor.onTargetFound = () => {
+      isTargetFound = true;
+      hasEverLocked = true;
+      scannerOverlay.style.display = 'none';
+      scannerOverlay.classList.add('locked-mode');
+      hudDot.className = 'badge-dot';
+      hudStatusText.textContent = 'Newspaper Locked • Playing';
+
+      if (arVideo.paused && !userManuallyPaused) {
+        arVideo.play().catch(e => console.warn('Play error on target found:', e));
+      }
+      playPauseBtn.textContent = '⏸️';
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(60); } catch(e) {}
+      }
+    };
+
+    anchor.onTargetLost = () => {
+      isTargetFound = false;
+
+      // Sticky lock persistence: Once scanned, keep playing smoothly during slight camera tilts
+      if (hasEverLocked) {
+        scannerOverlay.style.display = 'none';
+        scannerOverlay.classList.add('locked-mode');
+        hudDot.className = 'badge-dot';
+        hudStatusText.textContent = 'Newspaper Anchored • Playing';
+        if (arVideo.paused && !userManuallyPaused) {
+          arVideo.play().catch(() => {});
+          playPauseBtn.textContent = '⏸️';
+        }
+        return;
+      }
+
+      scannerOverlay.style.display = 'flex';
+      hudDot.className = 'badge-dot lost';
+      hudStatusText.textContent = 'Searching for Newspaper...';
+      arVideo.pause();
+      playPauseBtn.textContent = '▶️';
+    };
+
+    // Start MindAR Engine
+    await mindarThree.start();
+
+    // Auto resize
+    window.addEventListener('resize', () => {
+      if (mindarThree && typeof mindarThree.resize === 'function') {
+        mindarThree.resize();
+      }
+    });
+
+    loadingView.style.display = 'none';
+    scannerOverlay.style.display = 'flex';
+    hud.style.display = 'block';
+
+    // 7. Render Loop with Smooth Inertial Filtering
+    renderer.setAnimationLoop(() => {
+      if (anchor && anchor.group && arStage) {
+        const m = anchor.group.matrix.elements;
+        const isTracking = (m[0] !== 0 || m[5] !== 0 || m[10] !== 0);
+
+        if (isTracking) {
+          anchor.group.matrix.decompose(targetPos, targetQuat, targetScale);
+
+          if (!isPoseInitialized) {
+            currentPos.copy(targetPos);
+            currentQuat.copy(targetQuat);
+            currentScale.copy(targetScale);
+            isPoseInitialized = true;
+          } else {
+            currentPos.lerp(targetPos, 0.35);
+            currentQuat.slerp(targetQuat, 0.35);
+            currentScale.lerp(targetScale, 0.35);
+          }
+
+          arStage.matrix.compose(currentPos, currentQuat, currentScale);
+          arStage.matrixWorld.copy(arStage.matrix);
+          arStage.matrixWorldNeedsUpdate = true;
+          lastValidMatrix.copy(arStage.matrix);
+          arStage.visible = true;
+        } else if (hasEverLocked) {
+          arStage.matrix.copy(lastValidMatrix);
+          arStage.matrixWorld.copy(arStage.matrix);
+          arStage.matrixWorldNeedsUpdate = true;
+          arStage.visible = true;
+        }
+      }
+
+      // Dynamic Auto Camera-Facing Billboard
+      if (currentAngleMode === 'auto' && arStage && arStage.visible && cardPivotGroup) {
+        arStage.getWorldQuaternion(parentQuat);
+        targetLocalQuat.copy(parentQuat).invert();
+        cardPivotGroup.quaternion.slerp(targetLocalQuat, 0.16);
+      }
+
+      // Animate particles
+      if (particlesGroup && (isTargetFound || hasEverLocked)) {
+        particlesGroup.children.forEach(p => {
+          p.position.y -= p.userData.speedY;
+          p.position.x += p.userData.driftX;
+          p.rotation.x += p.userData.rotX;
+          p.rotation.y += p.userData.rotY;
+
+          if (p.position.y < -1.1) {
+            p.position.y = 1.1;
+            p.position.x = (Math.random() - 0.5) * 1.6;
+          }
+        });
+      }
+
+      renderer.render(scene, camera);
+    });
+
+  } catch (err) {
+    console.error('AR initialization error:', err);
+    loadingView.style.display = 'none';
+    errorBox.style.display = 'flex';
+    errorDesc.textContent = err.message || 'Unable to access camera or initialize WebAR pipeline.';
+  }
+}
+
+// ── Viewing Angle Switcher ──────────────────────────────────────────────────
+function applyAngleMode(mode) {
+  currentAngleMode = mode;
+  if (!cardPivotGroup || !videoMesh || !backMesh) return;
+
+  [modeFlushBtn, modeEaselBtn, modeStandBtn, modeAutoBtn].forEach(b => b?.classList.remove('active'));
+
+  if (mode === 'flush') {
+    modeFlushBtn.classList.add('active');
+    // Perfectly centered flat on physical newspaper frame
+    cardPivotGroup.quaternion.identity();
+    cardPivotGroup.rotation.set(0, 0, 0);
+    cardPivotGroup.position.set(0, 0, 0.002);
+    videoMesh.position.set(0, 0, 0);
+    backMesh.position.set(0, 0, -0.003);
+    if (shadowMesh) shadowMesh.visible = false;
+    if (standPedestal) standPedestal.visible = false;
+  } else if (mode === 'easel') {
+    modeEaselBtn.classList.add('active');
+    // 60° pop-up easel tilt from bottom hinge
+    cardPivotGroup.quaternion.identity();
+    cardPivotGroup.rotation.set(Math.PI / 3, 0, 0);
+    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
+    videoMesh.position.set(0, HALF_HEIGHT, 0);
+    backMesh.position.set(0, HALF_HEIGHT, -0.004);
+    if (shadowMesh) shadowMesh.visible = true;
+    if (standPedestal) standPedestal.visible = true;
+  } else if (mode === 'stand') {
+    modeStandBtn.classList.add('active');
+    // 90° upright vertical stance from bottom hinge
+    cardPivotGroup.quaternion.identity();
+    cardPivotGroup.rotation.set(Math.PI / 2, 0, 0);
+    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
+    videoMesh.position.set(0, HALF_HEIGHT, 0);
+    backMesh.position.set(0, HALF_HEIGHT, -0.004);
+    if (shadowMesh) shadowMesh.visible = true;
+    if (standPedestal) standPedestal.visible = true;
+  } else if (mode === 'auto') {
+    modeAutoBtn.classList.add('active');
+    // Billboard camera-facing mode
+    cardPivotGroup.quaternion.identity();
+    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
+    videoMesh.position.set(0, HALF_HEIGHT, 0);
+    backMesh.position.set(0, HALF_HEIGHT, -0.004);
+    if (shadowMesh) shadowMesh.visible = true;
+    if (standPedestal) standPedestal.visible = true;
+  }
+}
+
+// ── Progress & Time Formatter ────────────────────────────────────────────────
+function formatTime(seconds) {
+  if (isNaN(seconds) || seconds < 0) return '00:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+arVideo.addEventListener('timeupdate', () => {
+  if (!arVideo.duration) return;
+  const current = arVideo.currentTime;
+  const total = arVideo.duration;
+  timeDisplay.textContent = `${formatTime(current)} / ${formatTime(total)}`;
+  const pct = Math.min(100, (current / total) * 100);
+  progressFill.style.width = pct + '%';
+});
+
+if (progressTrack) {
+  progressTrack.addEventListener('click', (e) => {
+    const rect = progressTrack.getBoundingClientRect();
+    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    if (arVideo.duration) {
+      arVideo.currentTime = pos * arVideo.duration;
+    }
+  });
+}
+
+// ── Event Handlers ───────────────────────────────────────────────────────────
+startBtn.onclick = startAR;
+retryBtn.onclick = () => { errorBox.style.display = 'none'; startAR(); };
+
+modeFlushBtn.onclick = () => applyAngleMode('flush');
+modeEaselBtn.onclick = () => applyAngleMode('easel');
+modeStandBtn.onclick = () => applyAngleMode('stand');
+modeAutoBtn.onclick = () => applyAngleMode('auto');
+
+playPauseBtn.onclick = () => {
+  if (arVideo.paused) {
+    userManuallyPaused = false;
+    arVideo.play().catch(() => {});
+    playPauseBtn.textContent = '⏸️';
+  } else {
+    userManuallyPaused = true;
+    arVideo.pause();
+    playPauseBtn.textContent = '▶️';
+  }
+};
+
+muteBtn.onclick = () => {
+  arVideo.muted = !arVideo.muted;
+  muteBtn.textContent = arVideo.muted ? '🔇' : '🔊';
+};
+
+replayBtn.onclick = () => {
+  arVideo.currentTime = 0;
+  userManuallyPaused = false;
+  arVideo.play().catch(() => {});
+  playPauseBtn.textContent = '⏸️';
+};
+
+closeBtn.onclick = () => {
+  if (mindarThree) {
+    try { mindarThree.stop(); } catch(e) {}
+  }
+  if (arVideo) arVideo.pause();
+  window.location.reload();
+};
+
+viewTargetBtn.onclick = () => { targetModal.style.display = 'flex'; };
+closeTargetModalBtn.onclick = () => { targetModal.style.display = 'none'; };
+</script>
+</body>
+</html>
