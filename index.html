@@ -59,77 +59,11 @@
     z-index: -100;
   }
 
-  /* 1-Tap Frictionless Entry Gate (Mobile Audio & Camera Permission) */
-  #start-prompt {
-    position: fixed; inset: 0; z-index: 35;
-    display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 50% 50%, rgba(18, 14, 11, 0.88), rgba(8, 6, 5, 0.98));
-    backdrop-filter: blur(14px);
-    cursor: pointer; text-align: center; padding: 24px;
-    transition: opacity 0.3s ease, visibility 0.3s;
-  }
-
-  .start-card {
-    max-width: 350px; width: 100%;
-    background: rgba(22, 17, 13, 0.95);
-    border: 1.5px solid var(--gold-border);
-    border-radius: 28px; padding: 36px 24px 28px;
-    box-shadow: 0 16px 50px rgba(0,0,0,0.9), 0 0 35px var(--gold-glow);
-    display: flex; flex-direction: column; align-items: center;
-    animation: gentlePulse 2.8s infinite ease-in-out;
-  }
-
-  @keyframes gentlePulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 16px 50px rgba(0,0,0,0.9), 0 0 25px var(--gold-glow); }
-    50% { transform: scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.98), 0 0 42px var(--gold-glow); }
-  }
-
-  .monogram-ring {
-    width: 78px; height: 78px; border-radius: 50%;
-    background: linear-gradient(135deg, #fae29c, #d4a742);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cinzel', serif; font-size: 24px; font-weight: 800; color: #1a1208;
-    margin-bottom: 18px;
-    box-shadow: 0 8px 28px rgba(212, 167, 66, 0.55);
-    border: 2px solid #fff3cf;
-  }
-
-  .start-tagline {
-    font-size: 10.5px; font-weight: 700; letter-spacing: 0.22em;
-    text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
-  }
-
-  .start-card h2 {
-    font-family: 'Cinzel', serif; font-size: 24px; font-weight: 800;
-    letter-spacing: 0.04em; margin: 0 0 6px; color: #fff;
-  }
-
-  .start-date {
-    font-family: 'Playfair Display', serif; font-style: italic;
-    font-size: 14.5px; color: #f8e5b9; margin-bottom: 12px;
-  }
-
-  .start-card p {
-    font-size: 12.5px; color: #d6cbbf; line-height: 1.55; margin: 0 0 24px;
-  }
-
-  .btn-tap-start {
-    background: linear-gradient(135deg, #fae29c, #d4a742);
-    color: #1a1208; font-weight: 800; font-size: 13.5px;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 14px 32px; border-radius: 999px;
-    border: none; cursor: pointer;
-    box-shadow: 0 6px 24px rgba(212, 167, 66, 0.5);
-    display: flex; align-items: center; gap: 8px;
-    transition: transform 0.15s, box-shadow 0.2s;
-  }
-  .btn-tap-start:active { transform: scale(0.96); }
-
   /* Loading State */
   #loading-view {
     position: fixed; inset: 0; z-index: 25;
     background: rgba(12, 9, 7, 0.96);
-    display: none; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     flex-direction: column; text-align: center; padding: 20px;
   }
   .spinner {
@@ -146,7 +80,7 @@
   /* Portrait Scanning Viewfinder (Matches 720x1280 Target Aspect Ratio) */
   #scanner-overlay {
     position: fixed; inset: 0; z-index: 10; pointer-events: none;
-    display: flex; align-items: center; justify-content: center;
+    display: none; align-items: center; justify-content: center;
     flex-direction: column;
   }
   #scanner-overlay.locked-mode {
@@ -267,30 +201,6 @@
     pointer-events: auto;
   }
 
-  /* Angle Switcher Modes */
-  .angle-mode-bar {
-    display: flex; gap: 6px;
-    background: rgba(22, 17, 13, 0.94);
-    border: 1px solid var(--gold-border);
-    border-radius: 999px; padding: 4px 6px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 8px 26px rgba(0,0,0,0.75);
-    max-width: 95vw; overflow-x: auto;
-  }
-
-  .angle-btn {
-    background: transparent; border: none;
-    color: #cbd5e1; font-size: 11px; font-weight: 600;
-    padding: 6px 13px; border-radius: 999px;
-    cursor: pointer; transition: all 0.2s ease;
-    white-space: nowrap; display: flex; align-items: center; gap: 5px;
-  }
-  .angle-btn.active {
-    background: linear-gradient(135deg, #fae29c, #d4a742);
-    color: #1a1208; font-weight: 800;
-    box-shadow: 0 2px 10px rgba(212, 167, 66, 0.45);
-  }
-
   /* Playback & Progress Bar Dock */
   .playback-bar {
     background: rgba(22, 17, 13, 0.94);
@@ -396,21 +306,6 @@
 <!-- Hidden Native Video Primed for 3D VideoTexture -->
 <video id="arVideo" src="./video.mp4" playsinline webkit-playsinline preload="auto" loop crossorigin="anonymous"></video>
 
-<!-- 1-Tap Entry Screen -->
-<div id="start-prompt">
-  <div class="start-card">
-    <div class="monogram-ring">N &amp; R</div>
-    <div class="start-tagline">Save The Date · The Wedding Post</div>
-    <h2>Nikhita &amp; Revanth</h2>
-    <div class="start-date">December 15th · MRC Convention</div>
-    <p>Two souls, one heart. Point your camera at the newspaper card to watch our story come alive in augmented reality.</p>
-    <button class="btn-tap-start" id="startBtn">
-      <span>📰</span>
-      <span>Open AR Camera</span>
-    </button>
-  </div>
-</div>
-
 <!-- MindAR Fullscreen Camera Viewport -->
 <div id="ar-container"></div>
 
@@ -445,14 +340,6 @@
   </div>
 
   <div class="hud-bottom">
-    <!-- Viewing Angle Switcher -->
-    <div class="angle-mode-bar">
-      <button class="angle-btn active" id="modeFlushBtn">📰 Live Photo</button>
-      <button class="angle-btn" id="modeEaselBtn">📐 3D Pop-Up</button>
-      <button class="angle-btn" id="modeStandBtn">🏛️ 90° Stand</button>
-      <button class="angle-btn" id="modeAutoBtn">🧭 Auto-Face</button>
-    </div>
-
     <!-- Video Playback & Time Dock -->
     <div class="playback-bar">
       <button class="play-pause-btn" id="playPauseBtn">⏸️</button>
@@ -493,8 +380,6 @@ import * as THREE from 'three';
 import { MindARThree } from 'mindar-image-three';
 
 // DOM Elements
-const startPrompt = document.getElementById('start-prompt');
-const startBtn = document.getElementById('startBtn');
 const loadingView = document.getElementById('loading-view');
 const loadStatus = document.getElementById('loadStatus');
 const scannerOverlay = document.getElementById('scanner-overlay');
@@ -517,11 +402,6 @@ const errorBox = document.getElementById('error-box');
 const errorDesc = document.getElementById('errorDesc');
 const retryBtn = document.getElementById('retryBtn');
 
-const modeFlushBtn = document.getElementById('modeFlushBtn');
-const modeEaselBtn = document.getElementById('modeEaselBtn');
-const modeStandBtn = document.getElementById('modeStandBtn');
-const modeAutoBtn = document.getElementById('modeAutoBtn');
-
 // 3D Scene Architecture
 let mindarThree = null;
 let anchor = null;
@@ -536,7 +416,7 @@ let particlesGroup = null;
 let isTargetFound = false;
 let hasEverLocked = false;
 let userManuallyPaused = false;
-let currentAngleMode = 'flush'; // 'flush' | 'easel' | 'stand' | 'auto'
+let userManuallyMuted = false;
 
 // Filtering & Smooth Tracking Matrices
 const currentPos = new THREE.Vector3();
@@ -597,32 +477,18 @@ function createAtmosphericParticles() {
   return group;
 }
 
-// ── Main Start AR Workflow ──────────────────────────────────────────────────
+// ── Main Start AR Workflow (Direct Launch) ──────────────────────────────────
 async function startAR() {
-  startPrompt.style.opacity = '0';
-  setTimeout(() => { startPrompt.style.display = 'none'; }, 300);
   loadingView.style.display = 'flex';
-  loadStatus.textContent = 'Requesting camera access...';
+  loadStatus.textContent = 'Starting camera & card tracker...';
 
-  // 1-Tap Autoplay & Audio Priming
+  // Prime Video
   try {
-    arVideo.muted = false;
-    const playPromise = arVideo.play();
-    if (playPromise !== undefined) {
-      await playPromise;
+    arVideo.play().then(() => {
       arVideo.pause();
       arVideo.currentTime = 0;
-    }
-  } catch (err) {
-    console.warn('Audio prime notice:', err);
-    arVideo.muted = true;
-    try {
-      await arVideo.play();
-      arVideo.pause();
-      arVideo.currentTime = 0;
-      arVideo.muted = false;
-    } catch (e2) {}
-  }
+    }).catch(() => {});
+  } catch (e) {}
 
   arContainer.style.display = 'block';
 
@@ -654,7 +520,7 @@ async function startAR() {
     arStage.visible = false;
     scene.add(arStage);
 
-    // 1. Contact Ground Shadow on Card Hinge
+    // 1. Contact Ground Shadow along Bottom Hinge
     const shadowGeo = new THREE.PlaneGeometry(CARD_WIDTH * 1.3, 0.4);
     const shadowMat = new THREE.MeshBasicMaterial({
       map: createContactShadowTexture(),
@@ -664,7 +530,7 @@ async function startAR() {
     });
     shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
     shadowMesh.position.set(0, -HALF_HEIGHT, 0.002);
-    shadowMesh.visible = false;
+    shadowMesh.visible = true;
     arStage.add(shadowMesh);
 
     // 2. 3D Golden Pedestal Bar along Bottom Hinge
@@ -676,12 +542,12 @@ async function startAR() {
     });
     standPedestal = new THREE.Mesh(standGeo, standMat);
     standPedestal.position.set(0, -HALF_HEIGHT, 0.01);
-    standPedestal.visible = false;
+    standPedestal.visible = true;
     arStage.add(standPedestal);
 
-    // 3. Pivot Transform Group
+    // 3. Pivot Transform Group anchored at bottom hinge
     cardPivotGroup = new THREE.Group();
-    cardPivotGroup.position.set(0, 0, 0.002);
+    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
     arStage.add(cardPivotGroup);
 
     // 4. High-Definition Unlit Video Texture
@@ -691,32 +557,29 @@ async function startAR() {
     videoTexture.magFilter = THREE.LinearFilter;
     videoTexture.generateMipmaps = false;
 
-    // Centered geometry for flush card overlay
+    // Upright geometry pivoting from bottom hinge
     const videoGeo = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT);
     const videoMat = new THREE.MeshBasicMaterial({
       map: videoTexture,
       side: THREE.DoubleSide
     });
     videoMesh = new THREE.Mesh(videoGeo, videoMat);
-    videoMesh.position.set(0, 0, 0);
+    videoMesh.position.set(0, HALF_HEIGHT, 0);
     cardPivotGroup.add(videoMesh);
 
-    // Recessed Gilded Backing Plane (z = -0.003) to prevent Z-fighting
+    // Recessed Gilded Backing Plane (z = -0.004) to prevent Z-fighting
     const backGeo = new THREE.PlaneGeometry(CARD_WIDTH + 0.02, CARD_HEIGHT + 0.02);
     const backMat = new THREE.MeshBasicMaterial({
       color: 0xc89b38,
       side: THREE.DoubleSide
     });
     backMesh = new THREE.Mesh(backGeo, backMat);
-    backMesh.position.set(0, 0, -0.003);
+    backMesh.position.set(0, HALF_HEIGHT, -0.004);
     cardPivotGroup.add(backMesh);
 
     // 5. Atmospheric Floating Sparkles
     particlesGroup = createAtmosphericParticles();
     arStage.add(particlesGroup);
-
-    // Apply Default Mode: 'flush' (Live Photo)
-    applyAngleMode('flush');
 
     // 6. Target Found & Lost Callbacks
     anchor.onTargetFound = () => {
@@ -728,7 +591,12 @@ async function startAR() {
       hudStatusText.textContent = 'Newspaper Locked • Playing';
 
       if (arVideo.paused && !userManuallyPaused) {
-        arVideo.play().catch(e => console.warn('Play error on target found:', e));
+        arVideo.play().catch(e => {
+          console.warn('Play blocked with audio, playing muted fallback:', e);
+          arVideo.muted = true;
+          muteBtn.textContent = '🔇';
+          arVideo.play().catch(() => {});
+        });
       }
       playPauseBtn.textContent = '⏸️';
 
@@ -740,7 +608,7 @@ async function startAR() {
     anchor.onTargetLost = () => {
       isTargetFound = false;
 
-      // Sticky lock persistence: Once scanned, keep playing smoothly during slight camera tilts
+      // Sticky lock persistence: Once scanned, keep playing smoothly during camera tilts
       if (hasEverLocked) {
         scannerOverlay.style.display = 'none';
         scannerOverlay.classList.add('locked-mode');
@@ -774,7 +642,7 @@ async function startAR() {
     scannerOverlay.style.display = 'flex';
     hud.style.display = 'block';
 
-    // 7. Render Loop with Smooth Inertial Filtering
+    // 7. Render Loop with Inertial Filtering & Auto Camera-Facing Billboard
     renderer.setAnimationLoop(() => {
       if (anchor && anchor.group && arStage) {
         const m = anchor.group.matrix.elements;
@@ -807,14 +675,14 @@ async function startAR() {
         }
       }
 
-      // Dynamic Auto Camera-Facing Billboard
-      if (currentAngleMode === 'auto' && arStage && arStage.visible && cardPivotGroup) {
+      // Default & Only Mode: Dynamic Auto Camera-Facing Billboard
+      if (arStage && arStage.visible && cardPivotGroup) {
         arStage.getWorldQuaternion(parentQuat);
         targetLocalQuat.copy(parentQuat).invert();
         cardPivotGroup.quaternion.slerp(targetLocalQuat, 0.16);
       }
 
-      // Animate particles
+      // Animate floating dust motes
       if (particlesGroup && (isTargetFound || hasEverLocked)) {
         particlesGroup.children.forEach(p => {
           p.position.y -= p.userData.speedY;
@@ -837,55 +705,6 @@ async function startAR() {
     loadingView.style.display = 'none';
     errorBox.style.display = 'flex';
     errorDesc.textContent = err.message || 'Unable to access camera or initialize WebAR pipeline.';
-  }
-}
-
-// ── Viewing Angle Switcher ──────────────────────────────────────────────────
-function applyAngleMode(mode) {
-  currentAngleMode = mode;
-  if (!cardPivotGroup || !videoMesh || !backMesh) return;
-
-  [modeFlushBtn, modeEaselBtn, modeStandBtn, modeAutoBtn].forEach(b => b?.classList.remove('active'));
-
-  if (mode === 'flush') {
-    modeFlushBtn.classList.add('active');
-    // Perfectly centered flat on physical newspaper frame
-    cardPivotGroup.quaternion.identity();
-    cardPivotGroup.rotation.set(0, 0, 0);
-    cardPivotGroup.position.set(0, 0, 0.002);
-    videoMesh.position.set(0, 0, 0);
-    backMesh.position.set(0, 0, -0.003);
-    if (shadowMesh) shadowMesh.visible = false;
-    if (standPedestal) standPedestal.visible = false;
-  } else if (mode === 'easel') {
-    modeEaselBtn.classList.add('active');
-    // 60° pop-up easel tilt from bottom hinge
-    cardPivotGroup.quaternion.identity();
-    cardPivotGroup.rotation.set(Math.PI / 3, 0, 0);
-    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
-    videoMesh.position.set(0, HALF_HEIGHT, 0);
-    backMesh.position.set(0, HALF_HEIGHT, -0.004);
-    if (shadowMesh) shadowMesh.visible = true;
-    if (standPedestal) standPedestal.visible = true;
-  } else if (mode === 'stand') {
-    modeStandBtn.classList.add('active');
-    // 90° upright vertical stance from bottom hinge
-    cardPivotGroup.quaternion.identity();
-    cardPivotGroup.rotation.set(Math.PI / 2, 0, 0);
-    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
-    videoMesh.position.set(0, HALF_HEIGHT, 0);
-    backMesh.position.set(0, HALF_HEIGHT, -0.004);
-    if (shadowMesh) shadowMesh.visible = true;
-    if (standPedestal) standPedestal.visible = true;
-  } else if (mode === 'auto') {
-    modeAutoBtn.classList.add('active');
-    // Billboard camera-facing mode
-    cardPivotGroup.quaternion.identity();
-    cardPivotGroup.position.set(0, -HALF_HEIGHT, 0.008);
-    videoMesh.position.set(0, HALF_HEIGHT, 0);
-    backMesh.position.set(0, HALF_HEIGHT, -0.004);
-    if (shadowMesh) shadowMesh.visible = true;
-    if (standPedestal) standPedestal.visible = true;
   }
 }
 
@@ -916,14 +735,19 @@ if (progressTrack) {
   });
 }
 
-// ── Event Handlers ───────────────────────────────────────────────────────────
-startBtn.onclick = startAR;
-retryBtn.onclick = () => { errorBox.style.display = 'none'; startAR(); };
+// Seamless Audio Unlock on First Touch
+function primeOrUnlockAudio() {
+  if (arVideo && arVideo.muted && !userManuallyMuted) {
+    arVideo.muted = false;
+    muteBtn.textContent = '🔊';
+  }
+}
+window.addEventListener('pointerdown', primeOrUnlockAudio, { passive: true });
+window.addEventListener('touchstart', primeOrUnlockAudio, { passive: true });
+window.addEventListener('click', primeOrUnlockAudio, { passive: true });
 
-modeFlushBtn.onclick = () => applyAngleMode('flush');
-modeEaselBtn.onclick = () => applyAngleMode('easel');
-modeStandBtn.onclick = () => applyAngleMode('stand');
-modeAutoBtn.onclick = () => applyAngleMode('auto');
+// ── Event Handlers ───────────────────────────────────────────────────────────
+retryBtn.onclick = () => { errorBox.style.display = 'none'; startAR(); };
 
 playPauseBtn.onclick = () => {
   if (arVideo.paused) {
@@ -938,7 +762,8 @@ playPauseBtn.onclick = () => {
 };
 
 muteBtn.onclick = () => {
-  arVideo.muted = !arVideo.muted;
+  userManuallyMuted = !userManuallyMuted;
+  arVideo.muted = userManuallyMuted;
   muteBtn.textContent = arVideo.muted ? '🔇' : '🔊';
 };
 
@@ -959,6 +784,13 @@ closeBtn.onclick = () => {
 
 viewTargetBtn.onclick = () => { targetModal.style.display = 'flex'; };
 closeTargetModalBtn.onclick = () => { targetModal.style.display = 'none'; };
+
+// Direct Launch: Open immediately in camera view
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  startAR();
+} else {
+  window.addEventListener('DOMContentLoaded', startAR);
+}
 </script>
 </body>
 </html>
